@@ -1,0 +1,5 @@
+admin:admin1:123123
+staff:staff1:password1
+customer:customer1:pass123
+guest:guest1:guestpass
+customer:test:123123
