@@ -1,5 +1,4 @@
-admin:admin1:123123
-staff:staff1:password1
-customer:customer1:pass123
-guest:guest1:guestpass
-customer:test:123123
+admin:admin1:123123:active
+staff:staff1:123123:active
+staff:ABCstaff:123123:active
+guest:guest:123123:active
