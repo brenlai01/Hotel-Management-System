@@ -2,8 +2,13 @@
 #include <string.h>
 #include <stdlib.h>
 
-#define MAX_LINE 100
+#define MAX_LINE 256
+#define MAX_USERS 100
+#define MAX_ROOMS 100
+#define MAX_BOOKINGS 100
+#define MAX_RESERVATIONS 100
 
+// User struct
 typedef struct {
     char usertype[20];
     char username[20];
@@ -11,27 +16,70 @@ typedef struct {
     char status[20];
 } User;
 
+// Room Struct
+typedef struct 
+{
+    int roomNum;
+    int roomFloor;
+    char roomType[20];
+    char roomStatus[20];
+} Room;
+
+// Booking Struct
+typedef struct 
+{
+    char customerUsername[20];
+    int roomNum;
+    int roomFloor;
+    char roomType[20];
+    char checkinDate[20];
+    char checkoutDate[20];
+} Booking;
+
+// Reservation Struct
+typedef struct 
+{
+    char customerUsername[20];
+    int roomNum;
+    int roomFloor;
+    char roomType[20];
+    char reserveStatus[20];
+} Reservations;
+
+
 // read_users function prototype
 void read_users(User users[], int *user_count);
+
+// read_rooms function prototype
+void read_rooms(Room rooms[], int *room_count);
 
 // login function prototype
 int login(User users[], int user_count, char *username, char *password, char *usertype, char *status);
 
-// register_user function prototype
+// admin register_user function prototype
 void register_user(User users[], int *user_count);
 
-// update_user_status function prototype
+// admin update_user_status function prototype
 void update_user_status(User users[], int user_count);
 
+// admin create_room function prototype
+void create_room(Room rooms[], int *room_count);
+
+// admin update_room function prototype
+void update_room(Room rooms[], int room_count); 
+
 // admin_menu function prototype
-void admin_menu(User users[], int *user_count);
+void admin_menu(User users[], int *user_count, Room rooms[], int *room_count);
 
 int main() 
 {
-    User users[100];  // Array to store user data
-    int user_count = 0;  // Number of users read from the file
+    User users[MAX_USERS];  // Array to store user data
+    Room rooms[MAX_ROOMS]; // Array to store room data
+    int user_count = 0;  // Number of users read from login.txt
+    int room_count = 0; // Number of rooms read from rooms.txt
 
     read_users(users, &user_count);
+    read_rooms(rooms, &room_count);
 
     char username[20];
     char password[20];
@@ -65,7 +113,7 @@ int main()
 
                 if (strcmp(usertype, "admin") == 0) 
                 {
-                    admin_menu(users, &user_count);
+                    admin_menu(users, &user_count, rooms, &room_count);
                 } 
                 else if (strcmp(usertype, "staff") == 0) 
                 {
@@ -118,7 +166,7 @@ int main()
     return 0;
 }
 
-// Function to read users' username, password, usertype, status from the file and store them in an array
+// Function to read users' username, password, usertype, status from the file & store in array users[] 
 void read_users(User users[], int *user_count) 
 {
     FILE *file = fopen("login.txt", "r");  // Error checking just in case file does not exist
@@ -141,7 +189,30 @@ void read_users(User users[], int *user_count)
     fclose(file);
 }
 
-// Function for users to login. User logs in ONLY if username and password matches
+// Function to read rooms' roomNum, roomFloor, roomType, roomStatus(available/booked) & store in array rooms[]
+void read_rooms(Room rooms[], int *room_count)
+{
+    FILE *file = fopen("rooms.txt","r");
+
+    if (file == NULL) {
+        printf("Error: Could not open file rooms.txt\n"); // error checking
+        exit(1);
+    }
+
+    char line[MAX_LINE];
+    *room_count = 0;
+
+    while (fgets(line, sizeof(line), file))
+    {
+        line[strcspn(line, "\n")] = '\0'; // Remove '\n'
+        sscanf(line, "%d:%d:%[^:]:%s", &rooms[*room_count].roomNum, &rooms[*room_count].roomFloor, rooms[*room_count].roomType, rooms[*room_count].roomStatus);
+        (*room_count)++;
+    }
+
+    fclose(file);
+}
+
+// Function for ALL users to login. User logs in ONLY if username and password matches
 int login(User users[], int user_count, char *username, char *password, char *usertype, char *status) 
 {
     for (int i = 0; i < user_count; i++) 
@@ -164,7 +235,7 @@ int login(User users[], int user_count, char *username, char *password, char *us
     return 0;
 }
 
-// Admin function to register users
+// Admin Function to register users
 void register_user(User users[], int *user_count) 
 {
     User new_user;
@@ -211,7 +282,7 @@ void register_user(User users[], int *user_count)
     (*user_count)++;
 }
 
-// Function to update user status (active/inactive)
+// Admin Function to update user status (active/inactive)
 void update_user_status(User users[], int user_count) 
 {
     char username[20];
@@ -273,8 +344,216 @@ void update_user_status(User users[], int user_count)
     }
 }
 
-// Admin functions menu
-void admin_menu(User users[], int *user_count) 
+// Function to save updated room[] array to txt file
+void write_rooms(Room rooms[], int room_count) 
+{
+    FILE *file = fopen("rooms.txt", "w");
+
+    if (file == NULL) 
+    {
+        printf("Error: Could not open file rooms.txt\n");
+        exit(1);
+    }
+
+    for (int i = 0; i < room_count; i++) 
+    {
+        fprintf(file, "%d:%d:%s:%s\n", rooms[i].roomNum, rooms[i].roomFloor, rooms[i].roomType, rooms[i].roomStatus);
+    }
+
+    fclose(file);
+}
+
+// Admin Function to create hotel rooms
+void create_room(Room rooms[], int *room_count) 
+{
+    Room new_room;
+
+    printf("Enter room number: ");
+    scanf("%d", &new_room.roomNum);
+    getchar();  // gets rid \n 
+
+    // Check if room number already exists
+    for (int i = 0; i < *room_count; i++) 
+    {
+        if (rooms[i].roomNum == new_room.roomNum) 
+        {
+            printf("Room number %d already exists. Please enter a different room number.\n", new_room.roomNum);
+            return;  // Exit the function
+        }
+    }
+
+    int valid_room = 0;
+
+    while (!valid_room)
+    {
+        printf("Enter room floor: ");
+        scanf("%d", &new_room.roomFloor);
+        getchar();  // gets rid \n
+
+        if (new_room.roomFloor >= 1 && new_room.roomFloor <= 10)
+        {
+            valid_room = 1;
+        }
+        else
+        {
+            printf("Invalid room floor. Please enter floor within 1-10.\n");
+        }
+    }
+
+    int valid_type = 0;
+
+    while (!valid_type)
+    {
+        printf("Enter room type: ");
+        fgets(new_room.roomType, sizeof(new_room.roomType), stdin);
+        new_room.roomType[strcspn(new_room.roomType, "\n")] = '\0';
+
+        if (strcmp(new_room.roomType, "single") == 0 || strcmp(new_room.roomType, "double") == 0 || strcmp(new_room.roomType, "suite") == 0)
+        {
+            valid_type = 1;
+        }
+        else
+        {
+            printf("Invalid room type. Please enter 'single', 'double', or 'suite'.\n");
+        }
+    }
+
+    strcpy(new_room.roomStatus, "available");
+
+    rooms[*room_count] = new_room;
+    (*room_count)++;
+
+    write_rooms(rooms, *room_count);
+    printf("Room created successfully.\n", new_room.roomNum);
+}
+
+// Admin Function to update hotel rooms details (roomNum, roomFloor, roomType, roomStatus) if entered wrongly
+void update_room(Room rooms[], int room_count) 
+{
+    int roomNum;
+    char new_roomType[20];
+    char new_roomStatus[20];
+
+    printf("Enter room number to update: ");
+    scanf("%d", &roomNum);
+    getchar();  // get rid \n
+
+    int room_found = 0;
+    for (int i = 0; i < room_count; i++) // Check if room number exists
+    {
+        if (rooms[i].roomNum == roomNum) 
+        {
+            room_found = 1;
+
+            printf("\n--- Current room details ---");
+            printf("\n1. Room Number: %d", rooms[i].roomNum);
+            printf("\n2. Room Floor: %d", rooms[i].roomFloor);
+            printf("\n3. Room Type: %s", rooms[i].roomType);
+            printf("\n4. Room Status: %s\n", rooms[i].roomStatus);
+
+            int valid_room = 0;
+
+            while (!valid_room)
+            {
+                printf("Enter room floor: ");
+                scanf("%d", &rooms[i].roomFloor);
+                getchar();  // gets rid \n
+
+                if (rooms[i].roomFloor >= 1 && rooms[i].roomFloor <= 10)
+                {
+                    valid_room = 1;
+                }
+                else
+                {
+                    printf("Invalid room floor. Please enter floor within 1-10.\n");
+                }
+            }
+
+            int valid_type = 0;
+
+            while (!valid_type)
+            {
+                printf("Enter room type: ");
+                fgets(new_roomType, sizeof(new_roomType), stdin);
+                new_roomType[strcspn(new_roomType, "\n")] = '\0';
+
+                if (strcmp(new_roomType, "single") == 0 || strcmp(new_roomType, "double") == 0 || strcmp(new_roomType, "suite") == 0)
+                {
+                    valid_type = 1;
+                    strcpy(rooms[i].roomType, new_roomType); 
+                }
+                else
+                {
+                    printf("Invalid room type. Please enter 'single', 'double', or 'suite'.\n");
+                }
+            }
+
+            int valid_status = 0;
+
+            while (!valid_status)
+            {
+                printf("Enter new room status (available/booked): ");
+                fgets(new_roomStatus, sizeof(new_roomStatus), stdin);
+                new_roomStatus[strcspn(new_roomStatus, "\n")] = '\0';
+
+                if (strcmp(new_roomStatus, "available") == 0 || strcmp(new_roomType, "booked") == 0)
+                {
+                    valid_status = 1;
+                    strcpy(rooms[i].roomStatus, new_roomStatus); 
+                }
+                else
+                {
+                    printf("Invalid room type. Please enter 'available', or 'booked'.\n");
+                }
+            }
+
+            write_rooms(rooms, room_count);
+            printf("Room updated successfully.\n");
+            break;
+        }
+    }
+
+    if (!room_found) 
+    {
+        printf("Room not found. Please enter a valid room number.\n");
+    }
+}
+
+// Admin Function to remove hotel rooms
+void remove_room(Room rooms[], int *room_count) 
+{
+    int roomNum;
+
+    printf("Enter room number to remove: ");
+    scanf("%d", &roomNum);
+    getchar();  // Consume newline
+
+    int room_found = 0;
+    for (int i = 0; i < *room_count; i++) 
+    {
+        if (rooms[i].roomNum == roomNum) // check if entered room number matches any existing room number in array rooms[] 
+        {
+            room_found = 1;
+
+            for (int j = i; j < *room_count - 1; j++) // j < *room_count - 1 is used to move elements the array left and the last element in array will be temporarily duplicated 
+            {
+                rooms[j] = rooms[j + 1];
+            }
+            (*room_count)--; // by decreasing the size of array, this removes the duplicated element which is the last element in the array
+            write_rooms(rooms, *room_count);
+            printf("Room removed successfully.\n");
+            break;
+        }
+    }
+
+    if (!room_found) 
+    {
+        printf("Room not found.\n");
+    }
+}
+
+// Admin Functions menu
+void admin_menu(User users[], int *user_count, Room rooms[], int *room_count) 
 {
     int choice;
 
@@ -282,8 +561,10 @@ void admin_menu(User users[], int *user_count)
         printf("\n--- Administrator Menu ---\n");
         printf("1. Register new user\n");
         printf("2. Manage existing users\n");
-        printf("3. Manage hotel rooms\n");
-        printf("4. Logout\n");
+        printf("3. Create hotel rooms\n");
+        printf("4. Update hotel rooms\n");
+        printf("5. Remove hotel rooms\n");
+        printf("6. Logout\n");
         printf("Enter your choice: ");
 
         scanf("%d", &choice);
@@ -302,10 +583,21 @@ void admin_menu(User users[], int *user_count)
                 break;
             
             case 3:
-                printf("Managing hotel rooms...\n");
+                printf("Creating hotel room...\n");
+                create_room(rooms, room_count);
                 break;
 
             case 4:
+                printf("Updating hotel room...\n");
+                update_room(rooms, *room_count);
+                break;
+
+            case 5:
+                printf("Removing hotel room...\n");
+                remove_room(rooms, room_count);
+                break;
+
+            case 6:
                 printf("Logging out...\n");
                 break;
 
@@ -314,6 +606,6 @@ void admin_menu(User users[], int *user_count)
                 break;
         }
 
-    } while (choice != 4);
+    } while (choice != 6);
 }
 

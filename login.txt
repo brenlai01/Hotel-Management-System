@@ -2,3 +2,4 @@ admin:admin1:123123:active
 staff:staff1:123123:active
 staff:ABCstaff:123123:active
 guest:guest:123123:active
+staff:staff2:123123:inactive

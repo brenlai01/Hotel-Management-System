@@ -1,1 +1,9 @@
-1,
+101:1:single:available
+102:1:double:available
+103:1:suite:available
+201:2:single:available
+202:2:double:available
+203:2:suite:available
+104:1:single:available
+105:1:suite:available
+106:1:single:available
