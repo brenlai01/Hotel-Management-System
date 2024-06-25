@@ -44,7 +44,7 @@ typedef struct
     int roomFloor;
     char roomType[20];
     char reserveStatus[20];
-} Reservations;
+} Reservation;
 
 
 // read_users function prototype
@@ -52,6 +52,12 @@ void read_users(User users[], int *user_count);
 
 // read_rooms function prototype
 void read_rooms(Room rooms[], int *room_count);
+
+// read bookings function prototype
+void read_bookings(Booking bookings[], int *booking_count);
+
+// read reservations function prototype
+void read_reservations(Reservation reservations[], int *reserve_count);
 
 // login function prototype
 int login(User users[], int user_count, char *username, char *password, char *usertype, char *status);
@@ -71,6 +77,7 @@ void update_room(Room rooms[], int room_count);
 // admin_menu function prototype
 void admin_menu(User users[], int *user_count, Room rooms[], int *room_count);
 
+// Main Function
 int main() 
 {
     User users[MAX_USERS];  // Array to store user data
@@ -78,8 +85,8 @@ int main()
     int user_count = 0;  // Number of users read from login.txt
     int room_count = 0; // Number of rooms read from rooms.txt
 
-    read_users(users, &user_count);
-    read_rooms(rooms, &room_count);
+    read_users(users, &user_count); // Read from login.txt 
+    read_rooms(rooms, &room_count); // Read from rooms.txt 
 
     char username[20];
     char password[20];
@@ -207,6 +214,52 @@ void read_rooms(Room rooms[], int *room_count)
         line[strcspn(line, "\n")] = '\0'; // Remove '\n'
         sscanf(line, "%d:%d:%[^:]:%s", &rooms[*room_count].roomNum, &rooms[*room_count].roomFloor, rooms[*room_count].roomType, rooms[*room_count].roomStatus);
         (*room_count)++;
+    }
+
+    fclose(file);
+}
+
+// Function to read bookings' CustomerUsername, roomNum, roomFloor, type, checkindate, checkoutdate & store in array bookings[]
+void read_bookings(Booking bookings[], int *booking_count)
+{
+    FILE *file = fopen("bookings.txt","r");
+
+    if (file == NULL) {
+        printf("Error: Could not open file bookings.txt\n"); // error checking
+        exit(1);
+    }
+
+    char line[MAX_LINE];
+    *booking_count = 0;
+
+    while (fgets(line, sizeof(line), file))
+    {
+        line[strcspn(line, "\n")] = '\0'; // Remove '\n'
+        sscanf(line, "%d:%d:%[^:]:%[^:]:%[^:]:%s", &bookings[*booking_count].roomNum, &bookings[*booking_count].roomNum, bookings[*booking_count].roomType, bookings[*booking_count].checkinDate, bookings[*booking_count].checkoutDate);
+        (*booking_count)++;
+    }
+
+    fclose(file);
+}
+
+// Function to read reservations' CustomerUsername, roomNum, roomFloor, type, approval status & store in array reservations[]
+void read_reservations(Reservation reservations[], int *reserve_count)
+{
+    FILE *file = fopen("reservations.txt","r");
+
+    if (file == NULL) {
+        printf("Error: Could not open file reservations.txt\n"); // error checking
+        exit(1);
+    }
+
+    char line[MAX_LINE];
+    *reserve_count = 0;
+
+    while (fgets(line, sizeof(line), file))
+    {
+        line[strcspn(line, "\n")] = '\0'; // Remove '\n'
+        sscanf(line, "%d:%d:%[^:]:%[^:]:%s", &reservations[*reserve_count].roomNum, &reservations[*reserve_count].roomFloor, reservations[*reserve_count].roomType, reservations[*reserve_count].reserveStatus);
+        (*reserve_count)++;
     }
 
     fclose(file);
