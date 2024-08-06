@@ -74,6 +74,9 @@ void create_room(Room rooms[], int *room_count);
 // admin update_room function prototype
 void update_room(Room rooms[], int room_count); 
 
+// admin remove_room function prototype
+void remove_room(Room rooms[], int *room_count);
+
 // admin_menu function prototype
 void admin_menu(User users[], int *user_count, Room rooms[], int *room_count);
 
@@ -88,6 +91,14 @@ void view_bookings_and_manage(Room rooms[], int *room_count, Booking bookings[],
 void view_room_availability(Room rooms[], int *room_count);
 
 void view_booking_history(Booking bookings[], int *booking_count);
+
+void customer_menu(char username[20] ,Room rooms[], int *room_count, Reservation reservations[], int *reservation_count, Booking bookings[], int *booking_count);
+
+void view_available_rooms(Room rooms[], int *room_count);
+
+void make_reservation(char username[20], Room rooms[], int *room_count, Reservation reservations[], int *reservation_count);
+
+void cancel_reservation(char username[20], Room rooms[], int *room_count, Reservation reservations[], int *reservation_count);
 
 // Main Function
 int main() 
@@ -146,7 +157,7 @@ int main()
                 } 
                 else if (strcmp(usertype, "customer") == 0)
                 {
-                    //customer_menu();
+                    customer_menu(username ,rooms, &room_count, reservations, &reservation_count, bookings, &booking_count);
                 } 
                 else if (strcmp(usertype, "guest") == 0) 
                 {
@@ -214,7 +225,7 @@ void read_users(User users[], int *user_count)
     fclose(file);
 }
 
-//Read Functions
+// Read Functions
 // Function to read rooms' roomNum, roomFloor, roomType, roomStatus(available/booked) & store in array rooms[]
 void read_rooms(Room rooms[], int *room_count)
 {
@@ -700,7 +711,8 @@ void staff_menu(Room rooms[], int *room_count, Reservation reservations[], int *
         scanf("%d", &choice);
         getchar(); // Consume newline character
 
-        switch (choice) {
+        switch (choice) 
+        {
             case 1:
                 view_pending_reservations_and_manage(rooms, room_count, reservations, reservation_count, bookings, booking_count);
                 break;
@@ -1037,40 +1049,45 @@ void view_booking_history(Booking bookings[], int *booking_count)
 }
 
 // Customer Menu
-void staff_menu(Room rooms[], int *room_count, Reservation reservations[], int *reservation_count, Booking bookings[], int *booking_count) 
+void customer_menu(char username[20] ,Room rooms[], int *room_count, Reservation reservations[], int *reservation_count, Booking bookings[], int *booking_count) 
 {
     int choice;
 
     do {
-        printf("\n--- Staff Menu ---\n");
-        printf("1. Manage Pending Reservations\n");
-        printf("2. Manage Bookings\n");
-        printf("3. View Available Rooms\n");
-        printf("4. View Booking History\n");
-        printf("5. Logout\n");
+        printf("\n--- Customer Menu ---\n");
+        printf("1. Search for Available Rooms\n");
+        printf("2. View Reservations \n");
+        printf("3. View Current bookings\n");
+        printf("4. Make Reservations\n");
+        printf("5. Cancel Reservations\n");
+        printf("6. Logout\n");
         printf("Enter your choice: ");
 
         scanf("%d", &choice);
         getchar(); // Consume newline character
 
-        switch (choice) {
+        switch (choice) 
+        {
             case 1:
-                view_pending_reservations_and_manage(rooms, room_count, reservations, reservation_count, bookings, booking_count);
+                view_available_rooms(rooms, room_count);
                 break;
 
             case 2:
-                view_bookings_and_manage(rooms, room_count, bookings, booking_count);
                 break;
 
             case 3:
-                view_room_availability(rooms, room_count);
+                
                 break;
 
             case 4:
-                view_booking_history(bookings, booking_count);
+                make_reservation(username, rooms, room_count, reservations, reservation_count);
                 break;
 
             case 5:
+                cancel_reservation(username, rooms, room_count, reservations, reservation_count);
+                break;
+
+            case 6:
                 printf("Logging out...\n");
                 break;
 
@@ -1079,5 +1096,136 @@ void staff_menu(Room rooms[], int *room_count, Reservation reservations[], int *
                 break;
         }
 
-    } while (choice != 5);
+    } while (choice != 6);
 }
+
+// Customer Function to view available rooms
+void view_available_rooms(Room rooms[], int *room_count) 
+{
+    printf("%-3s %-12s %-10s %-10s\n", "No.", "Room Number", "Floor", "Type"); 
+    printf("----------------------------------\n");
+    
+    for (int i = 0; i < *room_count; i++) // Loop through array and display available rooms
+    {
+        if (strcmp(rooms[i].roomStatus, "available") == 0)
+        {
+            printf("%-3d %-12d %-10d %-10s\n", (i + 1), rooms[i].roomNum, rooms[i].roomFloor, rooms[i].roomType);
+        }
+    }
+}
+
+// Customer Function to make reservations
+void make_reservation(char username[20], Room rooms[], int *room_count, Reservation reservations[], int *reservation_count)
+{
+    int roomNum;
+    printf("Enter the room number you want to reserve: ");
+    scanf("%d", &roomNum);
+    getchar();
+
+    for (int i = 0; i < *room_count; i++) 
+    {
+        if (rooms[i].roomNum == roomNum) 
+        {
+            if (strcmp(rooms[i].roomStatus, "available") == 0) // Check if room is available
+            {
+                reservations[*reservation_count].roomNum = rooms[i].roomNum; // Add reservation
+                reservations[*reservation_count].roomFloor = rooms[i].roomFloor;
+                strcpy(reservations[*reservation_count].roomType, rooms[i].roomType);
+                strcpy(reservations[*reservation_count].customerUsername, username);
+                strcpy(reservations[*reservation_count].reservationStatus, "processing");
+                (*reservation_count)++;
+
+                FILE *fileReserve = fopen("reservations.txt", "w"); // Write updated reservations to file
+                if (fileReserve == NULL) 
+                {
+                    printf("Error: Could not open file reservations.txt\n");
+                    exit(1);
+                }
+
+                for (int i = 0; i < *reservation_count; i++) 
+                {
+                    fprintf(fileReserve, "%d:%d:%s:%s:%s\n", reservations[i].roomNum, reservations[i].roomFloor, 
+                    reservations[i].roomType, reservations[i].customerUsername, reservations[i].reservationStatus);
+                }
+
+                fclose(fileReserve);
+
+                printf("You have made a reservation for room number %d.\n", rooms[i].roomNum);
+                return;
+            } 
+            else 
+            {
+                printf("Room number %d is unavailable. Reservation cannot be made.\n", roomNum);
+                return;
+            }
+        }
+    }
+    printf("Invalid room number.\n");
+}
+
+void cancel_reservation(char username[20], Room rooms[], int *room_count, Reservation reservations[], int *reservation_count) 
+{   
+    printf("%-3s %-12s %-10s %-10s %-20s\n", "No.", "Room Number", "Floor", "Type", "Status"); 
+    printf("-----------------------------------------------------------------------\n");
+    
+    int processing_reservation_found = 0;
+    int customer_reservations = 0;
+    for (int i = 0; i < *reservation_count; i++)  // View reservations that haven't been approved or rejected
+    {
+        if (strcmp(reservations[i].customerUsername, username) == 0 && strcmp(reservations[i].reservationStatus, "processing") == 0) 
+        {
+            processing_reservation_found = 1;
+            customer_reservations++;
+            printf("%-3d %-12d %-10d %-10s %-20s\n", (customer_reservations), reservations[i].roomNum, reservations[i].roomFloor, reservations[i].roomType, reservations[i].reservationStatus);
+        }
+    }
+
+    if (!processing_reservation_found) {
+        printf("No processing reservations found for user %s.\n", username);
+        return;
+    }
+
+    int roomNum;
+    printf("Enter the room number of the reservation to cancel (0 to exit): ");
+    scanf("%d", &roomNum);
+    getchar(); 
+
+    if (roomNum == 0) 
+    {
+        printf("Operation canceled by the user.\n");
+        return;
+    }
+
+    for (int i = 0; i < *reservation_count; i++) 
+    {
+        if (reservations[i].roomNum == roomNum && strcmp(reservations[i].customerUsername, username) == 0 && strcmp(reservations[i].reservationStatus, "processing") == 0) 
+        {
+            for (int j = i; j < *reservation_count - 1; j++) // Shift all reservations after the one to be removed to the left
+            {
+                reservations[j] = reservations[j + 1];
+            }
+            (*reservation_count)--;
+
+            FILE *fileReserve = fopen("reservations.txt", "w"); // Write updated reservations to file
+            if (fileReserve == NULL) 
+            {
+                printf("Error: Could not open file reservations.txt\n");
+                exit(1);
+            }
+
+            for (int i = 0; i < *reservation_count; i++) 
+            {
+                fprintf(fileReserve, "%d:%d:%s:%s:%s\n", reservations[i].roomNum, reservations[i].roomFloor, 
+                reservations[i].roomType, reservations[i].customerUsername, reservations[i].reservationStatus);
+            }
+
+            fclose(fileReserve);
+
+            printf("Reservation for room number %d has been canceled.\n", roomNum);
+            return;
+        }
+    }
+    printf("Processing reservation for room number %d not found.\n", roomNum);
+}
+
+    

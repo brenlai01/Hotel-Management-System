@@ -4,3 +4,5 @@ staff:ABCstaff:123123:active
 guest:guest:123123:active
 staff:staff2:123123:inactive
 customer:brenlai:123123:active
+customer:Jane:123123:active
+customer:Mary:123123:active
