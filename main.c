@@ -100,6 +100,8 @@ void make_reservation(char username[20], Room rooms[], int *room_count, Reservat
 
 void cancel_reservation(char username[20], Room rooms[], int *room_count, Reservation reservations[], int *reservation_count);
 
+void guest_menu(Room rooms[], int *room_count);
+
 // Main Function
 int main() 
 {
@@ -161,7 +163,7 @@ int main()
                 } 
                 else if (strcmp(usertype, "guest") == 0) 
                 {
-                    //guest_menu();
+                    guest_menu(rooms, &room_count);
                 }
             } 
             else 
@@ -186,7 +188,7 @@ int main()
             {  
                 printf("\nContinuing as guest.");
                 logged_in = 1;
-                //guest_menu();
+                guest_menu(rooms, &room_count);
             }
         } 
         else if (choice == 3) 
@@ -1228,4 +1230,31 @@ void cancel_reservation(char username[20], Room rooms[], int *room_count, Reserv
     printf("Processing reservation for room number %d not found.\n", roomNum);
 }
 
-    
+//Guest Menu 
+void guest_menu(Room rooms[], int *room_count) 
+{
+    int choice;
+    char choice_input[10];
+
+    do {
+        printf("\n--- Guest Menu ---");
+        printf("\n1. View available rooms\n2. search for room details\n3. Exit\nEnter a choice: ");
+        fgets(choice_input, sizeof(choice_input), stdin);
+        choice = atoi(choice_input);
+
+        switch (choice) {
+            case 1:
+                view_available_rooms(rooms, room_count);
+                break;
+            case 2:
+                printf("----Room Details----\nRoomType   Price    Rates\nsingle     RM250    4.2/5.0\ndouble     RM300    4.3/5.0\nsuite      RM450    4.5/5.0\n");
+                break;
+            case 3:
+                printf("Exiting guest menu.\n");
+                break;
+            default:
+                printf("Invalid choice. Please enter 1 or 2 or 3\n");
+                break;
+        }
+    } while (choice != 3);
+}
