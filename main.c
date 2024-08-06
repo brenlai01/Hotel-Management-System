@@ -98,6 +98,10 @@ void view_available_rooms(Room rooms[], int *room_count);
 
 void make_reservation(char username[20], Room rooms[], int *room_count, Reservation reservations[], int *reservation_count);
 
+void view_reservation_history(char username[], Reservation reservations[], int *reservation_count);
+
+void view_current_bookings(char username[], Booking bookings[], int *booking_count);
+
 void cancel_reservation(char username[20], Room rooms[], int *room_count, Reservation reservations[], int *reservation_count);
 
 void guest_menu(Room rooms[], int *room_count);
@@ -1075,10 +1079,11 @@ void customer_menu(char username[20] ,Room rooms[], int *room_count, Reservation
                 break;
 
             case 2:
+                view_reservation_history(username, reservations, reservation_count);
                 break;
 
             case 3:
-                
+                view_current_bookings(username, bookings, booking_count);
                 break;
 
             case 4:
@@ -1165,6 +1170,83 @@ void make_reservation(char username[20], Room rooms[], int *room_count, Reservat
     printf("Invalid room number.\n");
 }
 
+//view current booking
+void view_current_bookings(char username[], Booking bookings[], int *booking_count) {
+    FILE *fileBooking = fopen("bookings.txt", "r"); // Open file for reading
+    if (fileBooking == NULL) {
+        printf("Error: Could not open file bookings.txt\n");
+        return;
+    }
+
+    char line[200];
+    int found = 0;
+
+    while (fgets(line, sizeof(line), fileBooking)) {
+        Booking booking;
+        sscanf(line, "%d:%d:%19[^:]:%19[^:]:%19[^:]:%19s",
+               &booking.roomNum,
+               &booking.roomFloor,
+               booking.roomType,
+               booking.customerUsername,
+               booking.checkinDate,
+               booking.checkoutDate);
+
+        if (strcmp(booking.customerUsername, username) == 0) {
+            printf("Room Number: %d\n", booking.roomNum);
+            printf("Room Floor: %d\n", booking.roomFloor);
+            printf("Room Type: %s\n", booking.roomType);
+            printf("Check-in Date: %s\n", booking.checkinDate);
+            printf("Check-out Date: %s\n", booking.checkoutDate);
+            printf("------------------------------\n");
+            found = 1;
+        }
+    }
+
+    if (!found) {
+        printf("No current bookings found for user %s.\n", username);
+    }
+
+    fclose(fileBooking);
+}
+
+//view reservation history
+void view_reservation_history(char username[20], Reservation reservations[], int *reservation_count) {
+    FILE *fileReserve = fopen("reservations.txt", "r"); // Open file for reading
+    if (fileReserve == NULL) {
+        printf("Error: Could not open file reservations.txt\n");
+        return;
+    }
+
+    char line[100];
+    int found = 0;
+
+    while (fgets(line, sizeof(line), fileReserve)) {
+        Reservation reservation;
+        sscanf(line, "%d:%d:%19[^:]:%19[^:]:%19s",
+               &reservation.roomNum,
+               &reservation.roomFloor,
+               reservation.roomType,
+               reservation.customerUsername,
+               reservation.reservationStatus);
+
+        if (strcmp(reservation.customerUsername, username) == 0) {
+            printf("Room Number: %d\n", reservation.roomNum);
+            printf("Room Floor: %d\n", reservation.roomFloor);
+            printf("Room Type: %s\n", reservation.roomType);
+            printf("Reservation Status: %s\n", reservation.reservationStatus);
+            printf("------------------------------\n");
+            found = 1;
+        }
+    }
+
+    if (!found) {
+        printf("No reservations found for user %s.\n", username);
+    }
+
+    fclose(fileReserve);
+}
+
+//cancel reservation
 void cancel_reservation(char username[20], Room rooms[], int *room_count, Reservation reservations[], int *reservation_count) 
 {   
     printf("%-3s %-12s %-10s %-10s %-20s\n", "No.", "Room Number", "Floor", "Type", "Status"); 
