@@ -46,7 +46,6 @@ typedef struct
     char reservationStatus[20];
 } Reservation;
 
-
 // read_users function prototype
 void read_users(User users[], int *user_count);
 
