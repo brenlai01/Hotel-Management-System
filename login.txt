@@ -6,3 +6,6 @@ staff:staff2:123123:inactive
 customer:brenlai:123123:active
 customer:Jane:123123:active
 customer:Mary:123123:active
+customer:testcustomer:123123:inactive
+admin:admin2:123123:active
+staff:staff123:123123:inactive

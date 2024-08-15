@@ -6,5 +6,5 @@
 203:2:suite:available
 104:1:single:available
 105:1:suite:available
-106:1:single:available
+106:1:single:unavailable
 301:3:suite:available

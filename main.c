@@ -917,7 +917,8 @@ void view_bookings_and_manage(Room rooms[], int *room_count, Booking bookings[],
     scanf("%d", &choice);
     getchar(); // Consume newline character
 
-    if (choice == 0) {
+    if (choice == 0) 
+    {
         return;
     }
 
@@ -1204,6 +1205,7 @@ void view_current_bookings(char username[], Booking bookings[], int *booking_cou
 
         if (strcmp(booking.customerUsername, username) == 0) 
         {
+            printf("\n------------------------------\n");
             printf("Room Number: %d\n", booking.roomNum);
             printf("Room Floor: %d\n", booking.roomFloor);
             printf("Room Type: %s\n", booking.roomType);
